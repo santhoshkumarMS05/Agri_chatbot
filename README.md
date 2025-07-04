@@ -33,13 +33,16 @@ Agri Chatbot is an AI-powered assistant designed to help farmers decide **which 
 ## 🖼️ Sample Chatbot UI
 
 ### 🔘 Homepage with Quick Questions
-![UI 1](./Screenshot%20(16).png)
+![Screenshot (16)](https://github.com/user-attachments/assets/acfc6d0e-f194-441f-bf23-7603209266eb)
+
 
 ### 📩 Response Based on Location and Rainfall
-![UI 2](./Screenshot%20(14).png)
+![Screenshot (14)](https://github.com/user-attachments/assets/df748a38-68bb-475a-aa48-1437da51c1bc)
+
 
 ### 📋 Crop Details and Growing Tips
-![UI 3](./Screenshot%20(15).png)
+![Screenshot (15)](https://github.com/user-attachments/assets/f6858301-75f0-452d-8d2a-b662064b62de)
+
 
 ---
 
