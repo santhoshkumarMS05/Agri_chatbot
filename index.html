@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌾 Crop Recommendation Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4caf50 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 1100px;
+            height: 85vh;
+            min-height: 700px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #2e7d32, #4caf50, #66bb6a);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+            pointer-events: none;
+        }
+
+        .chat-header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .chat-header p {
+            opacity: 0.95;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #f8fffe 0%, #f1f8f4 100%);
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #4caf50;
+            border-radius: 10px;
+        }
+
+        .message {
+            margin-bottom: 25px;
+            display: flex;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 18px 24px;
+            border-radius: 20px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            font-size: 15px;
+            position: relative;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+            font-weight: 500;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            border: 2px solid #e8f5e8;
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            white-space: pre-line;
+        }
+
+        /* Enhanced formatting for bot messages */
+        .message.bot .message-content strong {
+            color: #2e7d32;
+            font-weight: 700;
+        }
+
+        .message.bot .message-content h3 {
+            color: #1b5e20;
+            margin: 12px 0 8px 0;
+            font-size: 16px;
+        }
+
+        .message.bot .message-content ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .message.bot .message-content li {
+            margin: 6px 0;
+            color: #424242;
+        }
+
+        /* Emoji and special formatting */
+        .message.bot .message-content {
+            background: linear-gradient(145deg, #ffffff, #f9f9f9);
+        }
+
+        .chat-input-container {
+            padding: 25px 30px;
+            background: white;
+            border-top: 2px solid #e8f5e8;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 16px 24px;
+            border: 2px solid #e8f5e8;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            border-color: #4caf50;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+        }
+
+        .send-button {
+            padding: 16px 28px;
+            background: linear-gradient(135deg, #4caf50, #66bb6a);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #45a049, #5cb85c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .send-button:disabled {
+            background: #bdbdbd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #666;
+            font-style: italic;
+            padding: 8px 0;
+        }
+
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        .error-message {
+            color: #d32f2f;
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border: 2px solid #ffcdd2;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            padding: 50px 30px;
+            background: linear-gradient(135deg, #f1f8e9, #e8f5e8);
+            border-radius: 20px;
+            margin: 20px;
+        }
+
+        .welcome-message h3 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .welcome-message p {
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+
+        .sample-questions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .sample-question {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 2px solid #90caf9;
+            padding: 15px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .sample-question:hover {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3);
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+                max-width: 100%;
+            }
+            
+            .message-content {
+                max-width: 90%;
+            }
+
+            .sample-questions {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-messages {
+                padding: 20px 15px;
+            }
+
+            .chat-input-container {
+                padding: 20px 15px;
+            }
+        }
+
+        /* Status indicator */
+        .status-indicator {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            background: #4caf50;
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="status-indicator"></div>
+            <h1>🌾 Crop Recommendation Assistant</h1>
+            <p>Get expert advice on the best crops for your farming needs</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h3>Welcome to your Smart Farming Assistant! 🌱</h3>
+                <p>Ask me about crop recommendations, growing conditions, or farming advice. I'll help you choose the best crops for your land!</p>
+                <div class="sample-questions">
+                    <div class="sample-question" onclick="askSampleQuestion('What 3 crops should I grow in summer?')">
+                        🌞 What 3 crops for summer?
+                    </div>
+                    <div class="sample-question" onclick="askSampleQuestion('Best 2 crops for sandy soil?')">
+                        🏖️ Best 2 crops for sandy soil?
+                    </div>
+                    <div class="sample-question" onclick="askSampleQuestion('Give me 4 high profit crops to grow?')">
+                        💰 4 high profit crops?
+                    </div>
+                    <div class="sample-question" onclick="askSampleQuestion('What crops for small farms?')">
+                        🏡 Crops for small farms?
+                    </div>
+                    <div class="sample-question" onclick="askSampleQuestion('Tell me 5 crops suitable for rainy season')">
+                        🌧️ 5 crops for rainy season
+                    </div>
+                    <div class="sample-question" onclick="askSampleQuestion('Which 2 crops grow fast?')">
+                        ⚡ 2 fast growing crops
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="Ask about crop recommendations... (e.g., 'Give me 3 crops for summer')" 
+                    maxlength="500"
+                >
+                <button id="sendButton" class="send-button" onclick="sendMessage()">
+                    <span>Send</span>
+                    <span>🚀</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/chat';
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // Handle Enter key press
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function askSampleQuestion(question) {
+            chatInput.value = question;
+            sendMessage();
+        }
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            if (isUser) {
+                messageContent.textContent = content;
+            } else {
+                // For bot messages, allow HTML formatting
+                messageContent.innerHTML = content;
+            }
+            
+            messageDiv.appendChild(messageContent);
+            chatMessages.appendChild(messageDiv);
+            
+            // Remove welcome message if it exists
+            const welcomeMessage = document.querySelector('.welcome-message');
+            if (welcomeMessage) {
+                welcomeMessage.remove();
+            }
+            
+            // Scroll to bottom smoothly
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot';
+            loadingDiv.id = 'loading-message';
+            
+            const loadingContent = document.createElement('div');
+            loadingContent.className = 'message-content loading';
+            loadingContent.innerHTML = `
+                <span>🤖 Analyzing your farming needs</span>
+                <div class="loading-dots">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+            `;
+            
+            loadingDiv.appendChild(loadingContent);
+            chatMessages.appendChild(loadingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `<strong>⚠️ Error:</strong> ${message}`;
+            chatMessages.appendChild(errorDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, true);
+            
+            // Clear input and disable button
+            chatInput.value = '';
+            sendButton.disabled = true;
+            showLoading();
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+
+                hideLoading();
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    addMessage(data.response);
+                } else {
+                    showError(data.error || 'An error occurred');
+                }
+
+            } catch (error) {
+                hideLoading();
+                console.error('Error:', error);
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showError('Unable to connect to the server. Please make sure the backend is running on http://localhost:5000');
+                } else {
+                    showError('Sorry, something went wrong. Please try again.');
+                }
+            } finally {
+                sendButton.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        // Check server health on page load
+        async function checkServerHealth() {
+            try {
+                const response = await fetch('http://localhost:5000/health');
+                if (response.ok) {
+                    console.log('✅ Backend server is running');
+                } else {
+                    console.warn('⚠️ Backend server responded with error');
+                }
+            } catch (error) {
+                console.warn('⚠️ Backend server is not accessible');
+                showError('Backend server is not running. Please start the Flask server first.');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            chatInput.focus();
+            checkServerHealth();
+        });
+    </script>
+</body>
+</html>

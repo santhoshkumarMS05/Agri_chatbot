@@ -1,0 +1,25 @@
+# Web Framework
+flask==2.3.3
+flask-cors==4.0.0
+
+# LangChain and Vector Database
+langchain==0.0.329
+langchain-community==0.0.1
+chromadb==0.4.15
+
+# Environment and Configuration
+python-dotenv==1.0.0
+
+# Machine Learning and Embeddings
+sentence-transformers==2.2.2
+huggingface-hub==0.17.3
+torch==2.1.0
+transformers==4.35.0
+
+# HTTP Requests
+requests==2.31.0
+
+# Additional Dependencies
+numpy==1.24.3
+scipy==1.11.3
+tiktoken==0.5.1
